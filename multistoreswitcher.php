@@ -68,38 +68,45 @@ class MultistoreSwitcher extends Module
             return '';
         }
 
-        $shops = Shop::getShops(false, null, true); // false = all, null = no group filter, true = include group info
+        $shops = Shop::getShops(false, null, true);
         $activeShops = [];
         $groupStatus = [];
 
         foreach ($shops as $shopData) {
-            $isActive = is_array($shopData) ? (bool)$shopData['active'] : (bool)$shopData->active;
-            if (!$isActive) {
-                continue;
-            }
-            $idShopGroup = is_array($shopData) ? (int)$shopData['id_shop_group'] : (int)$shopData->id_shop_group;
-            if (!isset($groupStatus[$idShopGroup])) {
-                $groupTable = _DB_PREFIX_ . 'shop_group';
-                $sql = "SELECT `active` FROM `{$groupTable}` WHERE `id_shop_group` = {$idShopGroup}";
-                $result = Db::getInstance()->getRow($sql);
-                $groupStatus[$idShopGroup] = (bool)($result['active'] ?? false);
-            }
-             if (!$groupStatus[$idShopGroup]) {
-                continue;
-            }
-            //Shop in active shop group
-            $id_shop = is_array($shopData) ? (int) $shopData['id_shop'] : (int) $shopData->id_shop;
+            // Normalize shop data
+            $id_shop = is_array($shopData) ? (int)$shopData['id_shop'] : (int)$shopData->id_shop;
+            $id_shop_group = is_array($shopData) ? (int)$shopData['id_shop_group'] : (int)$shopData->id_shop_group;
             $name = is_array($shopData) ? $shopData['name'] : $shopData->name;
             $domain = is_array($shopData) ? $shopData['domain'] : $shopData->domain;
             $domain_ssl = is_array($shopData) ? $shopData['domain_ssl'] : $shopData->domain_ssl;
             $uri = is_array($shopData) ? $shopData['uri'] : $shopData->uri;
-            $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
+            $shop_active = is_array($shopData) ? (bool)$shopData['active'] : (bool)$shopData->active;
+
+            // Skip if shop is not active
+            if (!$shop_active) {
+                continue;
+            }
+
+            // Check group status
+            if (!isset($groupStatus[$id_shop_group])) {
+                $result = Db::getInstance()->getRow(
+                    'SELECT `active` FROM `' . _DB_PREFIX_ . 'shop_group` WHERE `id_shop_group` = ' . (int)$id_shop_group
+                );
+                $groupStatus[$id_shop_group] = (bool)($result['active'] ?? false);
+            }
+
+            if (!$groupStatus[$id_shop_group]) {
+                continue; // Skip if group is disabled
+            }
+
+            $useSsl = (bool)Configuration::get('PS_SSL_ENABLED');
             $domainUsed = $useSsl && !empty($domain_ssl) ? $domain_ssl : $domain;
+
             $activeShops[] = [
                 'id' => $id_shop,
                 'name' => $name,
                 'url' => ($useSsl ? 'https://' : 'http://') . $domainUsed . $uri,
-                'is_current' => $id_shop === (int) $this->context->shop->id,
+                'is_current' => $id_shop === (int)$this->context->shop->id,
             ];
         }
 
