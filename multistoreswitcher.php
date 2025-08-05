@@ -68,23 +68,19 @@ class MultistoreSwitcher extends Module
             return '';
         }
 
-        $shops = Shop::getShops(false, null, true); // Retrieve all shops
-
-        // 🔐 Filtra només les entrades vàlides (objectes o arrays)
-        $shops = array_filter($shops, function ($shopData) {
-            return is_array($shopData) || is_object($shopData);
-        });
-
+        $shopIds = Shop::getCompleteListOfShopsID(); // Returns array of IDs
         $activeShops = [];
         $groupStatus = [];
 
-        foreach ($shops as $shopData) {
-            $isActive = is_array($shopData) ? (bool)$shopData['active'] : (bool)$shopData->active;
-            if (!$isActive) {
+        foreach ($shopIds as $idShop) {
+            $shop = new Shop($idShop);
+
+            if (!Validate::isLoadedObject($shop) || !$shop->active) {
                 continue;
             }
 
-            $idShopGroup = is_array($shopData) ? (int)$shopData['id_shop_group'] : (int)$shopData->id_shop_group;
+            $idShopGroup = (int)$shop->id_shop_group;
+
             if (!isset($groupStatus[$idShopGroup])) {
                 $groupTable = _DB_PREFIX_ . 'shop_group';
                 $sql = "SELECT `active` FROM `{$groupTable}` WHERE `id_shop_group` = {$idShopGroup}";
@@ -96,21 +92,14 @@ class MultistoreSwitcher extends Module
                 continue;
             }
 
-            // Shop is in active shop group
-            $id_shop    = is_array($shopData) ? (int) $shopData['id_shop']    : (int) $shopData->id_shop;
-            $name       = is_array($shopData) ? $shopData['name']             : $shopData->name;
-            $domain     = is_array($shopData) ? $shopData['domain']           : $shopData->domain;
-            $domain_ssl = is_array($shopData) ? $shopData['domain_ssl']       : $shopData->domain_ssl;
-            $uri        = is_array($shopData) ? $shopData['uri']              : $shopData->uri;
-
             $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
-            $domainUsed = $useSsl && !empty($domain_ssl) ? $domain_ssl : $domain;
+            $domainUsed = $useSsl && !empty($shop->domain_ssl) ? $shop->domain_ssl : $shop->domain;
 
             $activeShops[] = [
-                'id'          => $id_shop,
-                'name'        => $name,
-                'url'         => ($useSsl ? 'https://' : 'http://') . $domainUsed . $uri,
-                'is_current'  => $id_shop === (int) $this->context->shop->id,
+                'id'         => (int) $shop->id,
+                'name'       => $shop->name,
+                'url'        => ($useSsl ? 'https://' : 'http://') . $domainUsed . $shop->getBaseURI(),
+                'is_current' => $shop->id === $this->context->shop->id,
             ];
         }
 
@@ -118,16 +107,14 @@ class MultistoreSwitcher extends Module
             return ''; // Only show if more than one store
         }
 
-        // Normalize $this->context->shop to array (critical fix)
         $currentShop = [
             'id'   => (int) $this->context->shop->id,
             'name' => $this->context->shop->name,
         ];
 
-        // Assign to Smarty
         $this->context->smarty->assign([
-            'shop_list'     => $activeShops,
-            'current_shop'  => $currentShop,
+            'shop_list'    => $activeShops,
+            'current_shop' => $currentShop,
         ]);
 
         if (!file_exists(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl')) {
@@ -136,6 +123,7 @@ class MultistoreSwitcher extends Module
 
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl');
     }
+
 
     public function hookDisplayHeader()
     {
