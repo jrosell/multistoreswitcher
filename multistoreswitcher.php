@@ -1,11 +1,9 @@
 <?php
 /**
- * Copyright 2025 Jordi Rosell
  * @author    Jordi Rosell <jroselln@gmail.com>
- * @copyright 2025
- * @license   MIT
+ * @copyright 2025 Jordi Rosell
+ * @license   MIT License
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -58,7 +56,6 @@ class MultistoreSwitcher extends Module
         return true;
     }
 
-
     public function uninstall()
     {
         return parent::uninstall();
@@ -76,7 +73,7 @@ class MultistoreSwitcher extends Module
 
         foreach ($shops as $shopData) {
             // Normalize shop data: handle both array and object
-            $id_shop = is_array($shopData) ? (int)$shopData['id_shop'] : (int)$shopData->id_shop;
+            $id_shop = is_array($shopData) ? (int) $shopData['id_shop'] : (int) $shopData->id_shop;
             $name = is_array($shopData) ? $shopData['name'] : $shopData->name;
             $domain = is_array($shopData) ? $shopData['domain'] : $shopData->domain;
             $domain_ssl = is_array($shopData) ? $shopData['domain_ssl'] : $shopData->domain_ssl;
@@ -87,14 +84,14 @@ class MultistoreSwitcher extends Module
                 continue;
             }
 
-            $useSsl = (bool)Configuration::get('PS_SSL_ENABLED');
+            $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
             $domainUsed = $useSsl && !empty($domain_ssl) ? $domain_ssl : $domain;
 
             $activeShops[] = [
                 'id' => $id_shop,
                 'name' => $name,
                 'url' => ($useSsl ? 'https://' : 'http://') . $domainUsed . $uri,
-                'is_current' => $id_shop === (int)$this->context->shop->id,
+                'is_current' => $id_shop === (int) $this->context->shop->id,
             ];
         }
 
@@ -104,7 +101,7 @@ class MultistoreSwitcher extends Module
 
         // Normalize $this->context->shop to array (critical fix)
         $currentShop = [
-            'id' => (int)$this->context->shop->id,
+            'id' => (int) $this->context->shop->id,
             'name' => $this->context->shop->name,
         ];
 
@@ -114,7 +111,11 @@ class MultistoreSwitcher extends Module
             'current_shop' => $currentShop, // ← Now it's an array, not object
         ]);
 
-        return $this->fetch('module:multistoreswitcher/multistoreswitcher.tpl');
+        if (!file_exists(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl')) {
+            die('Template file missing!');
+        }
+
+        return $this->context->smarty->fetch(_PS_MODULE_DIR_.'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl');
     }
 
     public function hookDisplayHeader()
@@ -122,18 +123,20 @@ class MultistoreSwitcher extends Module
         // Not done:
         // $this->context->controller->addCSS($this->_path.'views/css/multistoreswitcher.css');
     }
-    
+
     public function hookDisplayNav2()
     {
         return $this->render();
     }
+
     public function hookDisplayTop()
     {
-            return $this->render();
+        return $this->render();
     }
+
     public function hookDisplayFooter()
     {
-            return $this->render();
+        return $this->render();
     }
 
     protected function moveToTopOfHook($hookName, $shopId)
@@ -151,5 +154,4 @@ class MultistoreSwitcher extends Module
             "id_hook = $idHook AND id_module = $idModule AND id_shop = $shopId"
         );
     }
-
 }

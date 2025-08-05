@@ -1,3 +1,8 @@
+---
+title: "README"
+author: "Jordi Rosell"
+format: pdf
+---
 # PrestaShop Multistore Switcher
 
 A simple, lightweight module that adds a store selector dropdown for PrestaShop multistore setups.
