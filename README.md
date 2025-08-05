@@ -8,6 +8,11 @@ A simple, lightweight module that adds a store selector dropdown for PrestaShop 
 - No database changes.
 - Free and open source.
 
+## Screenshots
+![After installation](example1.png)
+![Click to open](example2.png)
+![Changed to a another store](example3.png)
+
 ## Installation
 1. Upload the `multistoreswitcher` folder to your `/modules/` directory.
 2. Go to Module Manager in your Back Office.
