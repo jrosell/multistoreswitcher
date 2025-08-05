@@ -63,7 +63,7 @@ class MultistoreSwitcher extends Module
 
     public function render()
     {
-        if (!$this->isInstalled()) {
+        if (Module::isInstalled('multistoreswitcher')) {
             return '';
         }
         if (!Shop::isFeatureActive() || !Validate::isLoadedObject($this->context->shop)) {
