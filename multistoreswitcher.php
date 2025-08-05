@@ -68,45 +68,49 @@ class MultistoreSwitcher extends Module
             return '';
         }
 
-        $shops = Shop::getShops(false, null, true);
+        $shops = Shop::getShops(false, null, true); // Retrieve all shops
+
+        // 🔐 Filtra només les entrades vàlides (objectes o arrays)
+        $shops = array_filter($shops, function ($shopData) {
+            return is_array($shopData) || is_object($shopData);
+        });
+
         $activeShops = [];
         $groupStatus = [];
 
         foreach ($shops as $shopData) {
-            // Normalize shop data
-            $id_shop = is_array($shopData) ? (int)$shopData['id_shop'] : (int)$shopData->id_shop;
-            $id_shop_group = is_array($shopData) ? (int)$shopData['id_shop_group'] : (int)$shopData->id_shop_group;
-            $name = is_array($shopData) ? $shopData['name'] : $shopData->name;
-            $domain = is_array($shopData) ? $shopData['domain'] : $shopData->domain;
-            $domain_ssl = is_array($shopData) ? $shopData['domain_ssl'] : $shopData->domain_ssl;
-            $uri = is_array($shopData) ? $shopData['uri'] : $shopData->uri;
-            $shop_active = is_array($shopData) ? (bool)$shopData['active'] : (bool)$shopData->active;
-
-            // Skip if shop is not active
-            if (!$shop_active) {
+            $isActive = is_array($shopData) ? (bool)$shopData['active'] : (bool)$shopData->active;
+            if (!$isActive) {
                 continue;
             }
 
-            // Check group status
-            if (!isset($groupStatus[$id_shop_group])) {
-                $result = Db::getInstance()->getRow(
-                    'SELECT `active` FROM `' . _DB_PREFIX_ . 'shop_group` WHERE `id_shop_group` = ' . (int)$id_shop_group
-                );
-                $groupStatus[$id_shop_group] = (bool)($result['active'] ?? false);
+            $idShopGroup = is_array($shopData) ? (int)$shopData['id_shop_group'] : (int)$shopData->id_shop_group;
+            if (!isset($groupStatus[$idShopGroup])) {
+                $groupTable = _DB_PREFIX_ . 'shop_group';
+                $sql = "SELECT `active` FROM `{$groupTable}` WHERE `id_shop_group` = {$idShopGroup}";
+                $result = Db::getInstance()->getRow($sql);
+                $groupStatus[$idShopGroup] = (bool)($result['active'] ?? false);
             }
 
-            if (!$groupStatus[$id_shop_group]) {
-                continue; // Skip if group is disabled
+            if (!$groupStatus[$idShopGroup]) {
+                continue;
             }
 
-            $useSsl = (bool)Configuration::get('PS_SSL_ENABLED');
+            // Shop is in active shop group
+            $id_shop    = is_array($shopData) ? (int) $shopData['id_shop']    : (int) $shopData->id_shop;
+            $name       = is_array($shopData) ? $shopData['name']             : $shopData->name;
+            $domain     = is_array($shopData) ? $shopData['domain']           : $shopData->domain;
+            $domain_ssl = is_array($shopData) ? $shopData['domain_ssl']       : $shopData->domain_ssl;
+            $uri        = is_array($shopData) ? $shopData['uri']              : $shopData->uri;
+
+            $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
             $domainUsed = $useSsl && !empty($domain_ssl) ? $domain_ssl : $domain;
 
             $activeShops[] = [
-                'id' => $id_shop,
-                'name' => $name,
-                'url' => ($useSsl ? 'https://' : 'http://') . $domainUsed . $uri,
-                'is_current' => $id_shop === (int)$this->context->shop->id,
+                'id'          => $id_shop,
+                'name'        => $name,
+                'url'         => ($useSsl ? 'https://' : 'http://') . $domainUsed . $uri,
+                'is_current'  => $id_shop === (int) $this->context->shop->id,
             ];
         }
 
@@ -116,21 +120,21 @@ class MultistoreSwitcher extends Module
 
         // Normalize $this->context->shop to array (critical fix)
         $currentShop = [
-            'id' => (int) $this->context->shop->id,
+            'id'   => (int) $this->context->shop->id,
             'name' => $this->context->shop->name,
         ];
 
         // Assign to Smarty
         $this->context->smarty->assign([
-            'shop_list' => $activeShops,
-            'current_shop' => $currentShop, // ← Now it's an array, not object
+            'shop_list'     => $activeShops,
+            'current_shop'  => $currentShop,
         ]);
 
         if (!file_exists(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl')) {
             die('Template file missing!');
         }
 
-        return $this->context->smarty->fetch(_PS_MODULE_DIR_.'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl');
+        return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl');
     }
 
     public function hookDisplayHeader()
