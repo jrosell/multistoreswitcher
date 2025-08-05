@@ -21,10 +21,10 @@ A simple, lightweight module that adds a store selector dropdown for PrestaShop 
 3. Search for "Multistore Switcher" and install it.
 4. It will appear in the top navigation (via `displayNav2` hook). If you prefer, it can hooked to `displayFooter` too.
 
-### Option B) Command line installation using packagist and composer
+### Option B) Command line installation using >php8.1, packagist and composer
 
 ```
-COMPOSER_ROOT_VERSION=$(php8.3 -r "require 'config/config.inc.php'; echo _PS_VERSION_;") composer require jrosell/multistoreswitcher
+composer require jrosell/multistoreswitcher
 ```
 
 ## Compatibility
