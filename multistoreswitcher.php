@@ -68,7 +68,7 @@ class MultistoreSwitcher extends Module
             return '';
         }
 
-        $shops = Shop::getShops();
+        $shops = Shop::getShops(true);
         $activeShops = [];
 
         foreach ($shops as $shopData) {
