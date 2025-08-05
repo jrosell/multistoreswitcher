@@ -26,7 +26,7 @@ A simple, lightweight module that adds a store selector dropdown for PrestaShop 
 ```
 COMPOSER_ROOT_VERSION=$(php8.3 -r "require 'config/config.inc.php'; echo _PS_VERSION_;") composer require jrosell/multistoreswitcher
 ```
-iiiiiiiiiiiiiiiiiiiiiiiiiiiii
+
 ## Compatibility
 - Works on PrestaShop 9.
 - Works with Hummingbird and classic themes.
