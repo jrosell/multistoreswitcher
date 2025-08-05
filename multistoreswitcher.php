@@ -68,25 +68,33 @@ class MultistoreSwitcher extends Module
             return '';
         }
 
-        $shops = Shop::getShops(true);
+        $shops = Shop::getShops(false, null, true); // false = all, null = no group filter, true = include group info
         $activeShops = [];
+        $groupStatus = [];
 
         foreach ($shops as $shopData) {
-            // Normalize shop data: handle both array and object
+            $isActive = is_array($shopData) ? (bool)$shopData['active'] : (bool)$shopData->active;
+            if (!$isActive) {
+                continue;
+            }
+            $idShopGroup = is_array($shopData) ? (int)$shopData['id_shop_group'] : (int)$shopData->id_shop_group;
+            if (!isset($groupStatus[$idShopGroup])) {
+                $groupTable = _DB_PREFIX_ . 'shop_group';
+                $sql = "SELECT `active` FROM `{$groupTable}` WHERE `id_shop_group` = {$idShopGroup}";
+                $result = Db::getInstance()->getRow($sql);
+                $groupStatus[$idShopGroup] = (bool)($result['active'] ?? false);
+            }
+             if (!$groupStatus[$idShopGroup]) {
+                continue;
+            }
+            //Shop in active shop group
             $id_shop = is_array($shopData) ? (int) $shopData['id_shop'] : (int) $shopData->id_shop;
             $name = is_array($shopData) ? $shopData['name'] : $shopData->name;
             $domain = is_array($shopData) ? $shopData['domain'] : $shopData->domain;
             $domain_ssl = is_array($shopData) ? $shopData['domain_ssl'] : $shopData->domain_ssl;
             $uri = is_array($shopData) ? $shopData['uri'] : $shopData->uri;
-            $active = is_array($shopData) ? $shopData['active'] : $shopData->active;
-
-            if (!$active) {
-                continue;
-            }
-
             $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
             $domainUsed = $useSsl && !empty($domain_ssl) ? $domain_ssl : $domain;
-
             $activeShops[] = [
                 'id' => $id_shop,
                 'name' => $name,
