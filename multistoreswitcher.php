@@ -63,60 +63,70 @@ class MultistoreSwitcher extends Module
 
     public function render()
     {
-        // Safety checks
+        if (!$this->isInstalled()) {
+            return '';
+        }
         if (!Shop::isFeatureActive() || !Validate::isLoadedObject($this->context->shop)) {
             return '';
         }
 
-        $shops = Shop::getShops();
-        $activeShops = [];
+        try {        
+            $shops = Shop::getShops();
+            $activeShops = [];
 
-        foreach ($shops as $shopData) {
-            // Normalize shop data: handle both array and object
-            $id_shop = is_array($shopData) ? (int) $shopData['id_shop'] : (int) $shopData->id_shop;
-            $name = is_array($shopData) ? $shopData['name'] : $shopData->name;
-            $domain = is_array($shopData) ? $shopData['domain'] : $shopData->domain;
-            $domain_ssl = is_array($shopData) ? $shopData['domain_ssl'] : $shopData->domain_ssl;
-            $uri = is_array($shopData) ? $shopData['uri'] : $shopData->uri;
-            $active = is_array($shopData) ? $shopData['active'] : $shopData->active;
+            foreach ($shops as $shopData) {
+                $id_shop = is_array($shopData) ? (int) $shopData['id_shop'] : (int) $shopData->id_shop;
+                $name = is_array($shopData) ? $shopData['name'] : $shopData->name;
+                $domain = is_array($shopData) ? $shopData['domain'] : $shopData->domain;
+                $domain_ssl = is_array($shopData) ? $shopData['domain_ssl'] : $shopData->domain_ssl;
+                $uri = is_array($shopData) ? $shopData['uri'] : $shopData->uri;
+                $active = is_array($shopData) ? $shopData['active'] : $shopData->active;
 
-            if (!$active) {
-                continue;
+                if (!$active) {
+                    continue;
+                }
+
+                $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
+                $domainUsed = $useSsl && !empty($domain_ssl) ? $domain_ssl : $domain;
+
+                $activeShops[] = [
+                    'id' => $id_shop,
+                    'name' => $name,
+                    'url' => ($useSsl ? 'https://' : 'http://') . $domainUsed . $uri,
+                    'is_current' => $id_shop === (int) $this->context->shop->id,
+                ];
             }
 
-            $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
-            $domainUsed = $useSsl && !empty($domain_ssl) ? $domain_ssl : $domain;
+            if (count($activeShops) <= 1) {
+                return '';
+            }
 
-            $activeShops[] = [
-                'id' => $id_shop,
-                'name' => $name,
-                'url' => ($useSsl ? 'https://' : 'http://') . $domainUsed . $uri,
-                'is_current' => $id_shop === (int) $this->context->shop->id,
+            $currentShop = [
+                'id' => (int) $this->context->shop->id,
+                'name' => $this->context->shop->name,
             ];
+
+            $this->context->smarty->assign([
+                'shop_list' => $activeShops,
+                'current_shop' => $currentShop,
+            ]);
+
+            $tplPath = _PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl';
+            if (!file_exists($tplPath)) {
+                return _PS_MODE_DEV_ ? 'Template file missing!' : '';
+            }
+
+            $output = $this->context->smarty->fetch($tplPath);
+            if (!$output && _PS_MODE_DEV_) {
+                return 'Failed to render template.';
+            }
+
+            return $output;
+        } catch (Throwable $e) {
+            return _PS_MODE_DEV_ ? 'MultistoreSwitcher Error: ' . $e->getMessage() : '';
         }
-
-        if (count($activeShops) <= 1) {
-            return ''; // Only show if more than one store
-        }
-
-        // Normalize $this->context->shop to array (critical fix)
-        $currentShop = [
-            'id' => (int) $this->context->shop->id,
-            'name' => $this->context->shop->name,
-        ];
-
-        // Assign to Smarty
-        $this->context->smarty->assign([
-            'shop_list' => $activeShops,
-            'current_shop' => $currentShop, // ← Now it's an array, not object
-        ]);
-
-        if (!file_exists(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl')) {
-            die('Template file missing!');
-        }
-
-        return $this->context->smarty->fetch(_PS_MODULE_DIR_.'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl');
     }
+
 
     public function hookDisplayHeader()
     {
@@ -141,6 +151,9 @@ class MultistoreSwitcher extends Module
 
     protected function moveToTopOfHook($hookName, $shopId)
     {
+        if (!$this->isRegisteredInHook($hookName)) {
+            return false;
+        }
         $idHook = Hook::getIdByName($hookName);
         if (!$idHook) {
             return false;
