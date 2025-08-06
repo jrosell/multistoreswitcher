@@ -25,6 +25,18 @@ class MultistoreSwitcher extends Module
         $this->displayName = $this->l('Multistore Switcher');
         $this->description = $this->l('Adds a store switcher dropdown to let users navigate between multistore shops.');
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+
+        // Register translation keys (used for store_name_{id})
+        $this->registerTranslationKeys();
+    }
+
+    protected function registerTranslationKeys()
+    {
+        // Optional: only register translation keys for existing shops
+        $shopIds = Shop::getCompleteListOfShopsID();
+        foreach ($shopIds as $id) {
+            $this->l('store_name_' . $id, 'multistoreswitcher');
+        }
     }
 
     public function install()
@@ -35,11 +47,9 @@ class MultistoreSwitcher extends Module
 
         $hookNames = ['displayNav2', 'displayHeader'];
 
-        // Get all shop IDs
         $shopIds = Shop::getCompleteListOfShopsID();
 
         foreach ($shopIds as $shopId) {
-            // Switch context to each shop
             Shop::setContext(Shop::CONTEXT_SHOP, $shopId);
 
             foreach ($hookNames as $hookName) {
@@ -50,7 +60,6 @@ class MultistoreSwitcher extends Module
             }
         }
 
-        // Restore to all shops context
         Shop::setContext(Shop::CONTEXT_ALL);
 
         return true;
@@ -63,12 +72,11 @@ class MultistoreSwitcher extends Module
 
     public function render()
     {
-        // Safety checks
         if (!Shop::isFeatureActive() || !Validate::isLoadedObject($this->context->shop)) {
             return '';
         }
 
-        $shopIds = Shop::getCompleteListOfShopsID(); // Returns array of IDs
+        $shopIds = Shop::getCompleteListOfShopsID();
         $activeShops = [];
         $groupStatus = [];
 
@@ -79,13 +87,13 @@ class MultistoreSwitcher extends Module
                 continue;
             }
 
-            $idShopGroup = (int)$shop->id_shop_group;
+            $idShopGroup = (int) $shop->id_shop_group;
 
             if (!isset($groupStatus[$idShopGroup])) {
                 $groupTable = _DB_PREFIX_ . 'shop_group';
                 $sql = "SELECT `active` FROM `{$groupTable}` WHERE `id_shop_group` = {$idShopGroup}";
                 $result = Db::getInstance()->getRow($sql);
-                $groupStatus[$idShopGroup] = (bool)($result['active'] ?? false);
+                $groupStatus[$idShopGroup] = (bool) ($result['active'] ?? false);
             }
 
             if (!$groupStatus[$idShopGroup]) {
@@ -104,7 +112,7 @@ class MultistoreSwitcher extends Module
         }
 
         if (count($activeShops) <= 1) {
-            return ''; // Only show if more than one store
+            return '';
         }
 
         $currentShop = [
@@ -124,11 +132,9 @@ class MultistoreSwitcher extends Module
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl');
     }
 
-
     public function hookDisplayHeader()
     {
-        // Not done:
-        // $this->context->controller->addCSS($this->_path.'views/css/multistoreswitcher.css');
+        // Add CSS or JS here if needed
     }
 
     public function hookDisplayNav2()
