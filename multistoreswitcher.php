@@ -129,8 +129,9 @@ class MultistoreSwitcher extends Module
             $domainUsed = $useSsl && !empty($shop->domain_ssl) ? $shop->domain_ssl : $shop->domain;
 
             // Translation logic
+            $translator = $this->getTranslator();
             $translation_key = 'store_name_' . (int) $shop->id;
-            $translated_name = $this->l($translation_key, 'Modules.Multistoreswitcher.Shop');
+            $translated_name = $translator->trans($translation_key, [], 'Modules.Multistoreswitcher.Shop');
             $display_name = ($translated_name !== $translation_key) ? $translated_name : $shop->name;
 
             $activeShops[] = [
