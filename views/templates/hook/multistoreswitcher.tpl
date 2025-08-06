@@ -14,12 +14,14 @@
       >
         {foreach from=$shop_list item=shop}
           {assign var="translation_key" value="store_name_"|cat:$shop.id}
-          {assign var="translated_name" value={l s=$translation_key d='Modules.Multistoreswitcher.Shop'}}
           <option
             value="{$shop.url}"
             {if $shop.is_current} selected="selected"{/if}
             data-iso-code="{$shop.id}"
           >
+            {capture assign=translated_name}
+              {l s=$translation_key d='Modules.Multistoreswitcher.Shop'}
+            {/capture}
             {if $translated_name == $translation_key}
               {$shop.name|truncate:30}
             {else}
