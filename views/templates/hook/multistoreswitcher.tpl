@@ -19,14 +19,14 @@
             {if $shop.is_current} selected="selected"{/if}
             data-iso-code="{$shop.id}"
           >
-            {capture assign=translated_name}
-              {l s=$translation_key d='Modules.Multistoreswitcher.Shop'}
-            {/capture}
-            {if $translated_name == $translation_key}
-              {$shop.name|truncate:30}
-            {else}
-              {$translated_name|truncate:30}
-            {/if}
+            {strip}
+              {l s=$translation_key d='Modules.Multistoreswitcher.Shop' assign='translated_name'}
+              {if $translated_name == $translation_key}
+                {$shop.name|truncate:30}
+              {else}
+                {$translated_name|truncate:30}
+              {/if}
+            {/strip}
           </option>
         {/foreach}
       </select>
