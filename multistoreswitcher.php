@@ -32,11 +32,36 @@ class MultistoreSwitcher extends Module
 
     protected function registerTranslationKeys()
     {
-        // Optional: only register translation keys for existing shops
-        $shopIds = Shop::getCompleteListOfShopsID();
-        foreach ($shopIds as $id) {
-            $this->l('store_name_' . $id, 'multistoreswitcher');
-        }
+        $this->l('store_name_1', 'multistoreswitcher');
+        $this->l('store_name_2', 'multistoreswitcher');
+        $this->l('store_name_3', 'multistoreswitcher');
+        $this->l('store_name_4', 'multistoreswitcher');
+        $this->l('store_name_5', 'multistoreswitcher');
+        $this->l('store_name_6', 'multistoreswitcher');
+        $this->l('store_name_7', 'multistoreswitcher');
+        $this->l('store_name_8', 'multistoreswitcher');
+        $this->l('store_name_9', 'multistoreswitcher');
+        $this->l('store_name_10', 'multistoreswitcher');
+        $this->l('store_name_11', 'multistoreswitcher');
+        $this->l('store_name_12', 'multistoreswitcher');
+        $this->l('store_name_13', 'multistoreswitcher');
+        $this->l('store_name_14', 'multistoreswitcher');
+        $this->l('store_name_15', 'multistoreswitcher');
+        $this->l('store_name_16', 'multistoreswitcher');
+        $this->l('store_name_17', 'multistoreswitcher');
+        $this->l('store_name_18', 'multistoreswitcher');
+        $this->l('store_name_19', 'multistoreswitcher');
+        $this->l('store_name_20', 'multistoreswitcher');
+        $this->l('store_name_21', 'multistoreswitcher');
+        $this->l('store_name_22', 'multistoreswitcher');
+        $this->l('store_name_23', 'multistoreswitcher');
+        $this->l('store_name_24', 'multistoreswitcher');
+        $this->l('store_name_25', 'multistoreswitcher');
+        $this->l('store_name_26', 'multistoreswitcher');
+        $this->l('store_name_27', 'multistoreswitcher');
+        $this->l('store_name_28', 'multistoreswitcher');
+        $this->l('store_name_29', 'multistoreswitcher');
+        $this->l('store_name_30', 'multistoreswitcher');
     }
 
     public function install()
