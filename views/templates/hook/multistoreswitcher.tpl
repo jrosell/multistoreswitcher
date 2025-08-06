@@ -1,6 +1,6 @@
 {*
- * @author    Jordi Rosell <jroselln@gmail.com>
- * @copyright 2025 Jordi Rosell
+ * @author    Jordi Rosell
+ * @copyright 2025
  * @license   MIT License
 *}
 {if $shop_list|count > 1}
@@ -13,20 +13,12 @@
         onchange="if (this.value) window.location.href = this.value;"
       >
         {foreach from=$shop_list item=shop}
-          {assign var="translation_key" value="store_name_"|cat:$shop.id}
           <option
             value="{$shop.url}"
             {if $shop.is_current} selected="selected"{/if}
             data-iso-code="{$shop.id}"
           >
-            {strip}
-              {l s=$translation_key d='Modules.Multistoreswitcher.Shop' assign='translated_name'}
-              {if $translated_name == $translation_key}
-                {$shop.name|truncate:30}
-              {else}
-                {$translated_name|truncate:30}
-              {/if}
-            {/strip}
+            {$shop.name_to_display|truncate:30}
           </option>
         {/foreach}
       </select>

@@ -128,11 +128,17 @@ class MultistoreSwitcher extends Module
             $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
             $domainUsed = $useSsl && !empty($shop->domain_ssl) ? $shop->domain_ssl : $shop->domain;
 
+            // Translation logic
+            $translation_key = 'store_name_' . (int) $shop->id;
+            $translated_name = $this->l($translation_key, 'Modules.Multistoreswitcher.Shop');
+            $display_name = ($translated_name !== $translation_key) ? $translated_name : $shop->name;
+
             $activeShops[] = [
-                'id'         => (int) $shop->id,
-                'name'       => $shop->name,
-                'url'        => ($useSsl ? 'https://' : 'http://') . $domainUsed . $shop->getBaseURI(),
-                'is_current' => $shop->id === $this->context->shop->id,
+                'id'              => (int) $shop->id,
+                'name'            => $shop->name,
+                'name_to_display' => $display_name,
+                'url'             => ($useSsl ? 'https://' : 'http://') . $domainUsed . $shop->getBaseURI(),
+                'is_current'      => $shop->id === $this->context->shop->id,
             ];
         }
 
@@ -157,25 +163,10 @@ class MultistoreSwitcher extends Module
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl');
     }
 
-    public function hookDisplayHeader()
-    {
-        // Add CSS or JS here if needed
-    }
-
-    public function hookDisplayNav2()
-    {
-        return $this->render();
-    }
-
-    public function hookDisplayTop()
-    {
-        return $this->render();
-    }
-
-    public function hookDisplayFooter()
-    {
-        return $this->render();
-    }
+    public function hookDisplayHeader() {}
+    public function hookDisplayNav2()    { return $this->render(); }
+    public function hookDisplayTop()     { return $this->render(); }
+    public function hookDisplayFooter()  { return $this->render(); }
 
     protected function moveToTopOfHook($hookName, $shopId)
     {
