@@ -18,7 +18,7 @@
             {if $shop.is_current} selected="selected"{/if}
             data-iso-code="{$shop.id}"
           >
-            {$shop.name|truncate:20}
+            {l s='%s' sprintf=[$shop.name|truncate:30] d='Modules.Multistoreswitcher.Shop'}
           </option>
         {/foreach}
       </select>
