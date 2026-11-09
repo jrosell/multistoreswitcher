@@ -1,0 +1,10 @@
+{
+  "name": "multistoreswitcher-browser-tests",
+  "private": true,
+  "scripts": {
+    "test:browser": "node --test tests/browser/mobile-menu.test.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

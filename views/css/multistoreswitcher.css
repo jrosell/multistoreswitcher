@@ -1,0 +1,9 @@
+.multistoreswitcher-mobile .js-multistoreswitcher-select {
+  /* Keep a visible native dropdown arrow in both Classic and Hummingbird. */
+  appearance: auto;
+  background-image: none;
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+  padding: .375rem .75rem;
+  max-width: 100%;
+}

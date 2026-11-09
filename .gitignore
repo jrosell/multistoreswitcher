@@ -2,3 +2,5 @@ vendor
 *.cache
 .php-cs-fixer*
 composer.lock
+node_modules/
+test-results/
