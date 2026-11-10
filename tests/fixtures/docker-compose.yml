@@ -1,0 +1,47 @@
+name: multistoreswitcher-browser-tests
+services:
+  database:
+    image: mariadb@sha256:d1891ede5a559f1086f55053bb8cc1569b0298338c4d72d71725a7f74f6ba620
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DEV_DB_ROOT_PASSWORD:?Run scripts/test-shop.sh first}
+      MARIADB_DATABASE: prestashop
+      MARIADB_USER: prestashop
+      MARIADB_PASSWORD: ${DEV_DB_PASSWORD:?Run scripts/test-shop.sh first}
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  shop:
+    image: prestashop/prestashop@sha256:bd05527bc324b43bf70458413be60181614fad62f71a63af2525362985207b3d
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${TEST_SHOP_PORT:-8080}:80"
+    environment:
+      DB_SERVER: database
+      DB_NAME: prestashop
+      DB_USER: prestashop
+      DB_PASSWD: ${DEV_DB_PASSWORD:?Run scripts/test-shop.sh first}
+      PS_INSTALL_AUTO: "0"
+      PS_DOMAIN: localhost:${TEST_SHOP_PORT:-8080}
+      PS_LANGUAGE: en
+      PS_COUNTRY: ES
+      PS_DEV_MODE: "1"
+      PS_FOLDER_ADMIN: admin-dev
+      ADMIN_MAIL: developer@example.test
+      ADMIN_PASSWD: ${DEV_ADMIN_PASSWORD:?Run scripts/test-shop.sh first}
+    volumes:
+      - shop:/var/www/html
+      - ../..:/var/www/html/modules/multistoreswitcher:ro
+      - .:/opt/module-dev:ro
+      - /etc/ssl/certs/ca-certificates.crt:/run/cloud-ca.crt:ro
+      - ./php-cloud.ini:/usr/local/etc/php/conf.d/zz-cloud.ini:ro
+      - ./trust-ca.sh:/tmp/pre-install-scripts/10-cloud-ca.sh:ro
+      - ./trust-ca.sh:/tmp/init-scripts/10-cloud-ca.sh:ro
+volumes:
+  database:
+  shop:

@@ -2,6 +2,7 @@
   "name": "multistoreswitcher-browser-tests",
   "private": true,
   "scripts": {
+    "test:shop": "bash scripts/test-shop.sh",
     "test:browser": "node --test tests/browser/mobile-menu.test.cjs"
   },
   "devDependencies": {
