@@ -14,7 +14,7 @@ class MultistoreSwitcher extends Module
     {
         $this->name = 'multistoreswitcher';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.1';
+        $this->version = '1.0.2';
         $this->author = 'Jordi Rosell';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];

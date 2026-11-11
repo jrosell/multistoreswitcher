@@ -1,12 +1,13 @@
 /**
  * Move the navigation's shop selector beside the mobile language selector.
- * Classic and Hummingbird both provide this mobile language placeholder.
+ * Classic and Hummingbird themes use different mobile language placeholder IDs.
  */
 (function () {
   'use strict';
 
   function init() {
-    var languageSelector = document.getElementById('_mobile_language_selector');
+    var languageSelector = document.getElementById('_mobile_ps_languageselector')
+      || document.getElementById('_mobile_language_selector');
     if (!languageSelector) {
       return;
     }
