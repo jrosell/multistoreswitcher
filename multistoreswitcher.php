@@ -14,7 +14,7 @@ class MultistoreSwitcher extends Module
     {
         $this->name = 'multistoreswitcher';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'Jordi Rosell';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = ['min' => '1.7.1.0', 'max' => _PS_VERSION_];
@@ -25,6 +25,43 @@ class MultistoreSwitcher extends Module
         $this->displayName = $this->l('Multistore Switcher');
         $this->description = $this->l('Adds a store switcher dropdown to let users navigate between multistore shops.');
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+
+        // Register translation keys (used for store_name_{id})
+        $this->registerTranslationKeys();
+    }
+
+    protected function registerTranslationKeys()
+    {
+        $this->l('store_name_1', 'multistoreswitcher');
+        $this->l('store_name_2', 'multistoreswitcher');
+        $this->l('store_name_3', 'multistoreswitcher');
+        $this->l('store_name_4', 'multistoreswitcher');
+        $this->l('store_name_5', 'multistoreswitcher');
+        $this->l('store_name_6', 'multistoreswitcher');
+        $this->l('store_name_7', 'multistoreswitcher');
+        $this->l('store_name_8', 'multistoreswitcher');
+        $this->l('store_name_9', 'multistoreswitcher');
+        $this->l('store_name_10', 'multistoreswitcher');
+        $this->l('store_name_11', 'multistoreswitcher');
+        $this->l('store_name_12', 'multistoreswitcher');
+        $this->l('store_name_13', 'multistoreswitcher');
+        $this->l('store_name_14', 'multistoreswitcher');
+        $this->l('store_name_15', 'multistoreswitcher');
+        $this->l('store_name_16', 'multistoreswitcher');
+        $this->l('store_name_17', 'multistoreswitcher');
+        $this->l('store_name_18', 'multistoreswitcher');
+        $this->l('store_name_19', 'multistoreswitcher');
+        $this->l('store_name_20', 'multistoreswitcher');
+        $this->l('store_name_21', 'multistoreswitcher');
+        $this->l('store_name_22', 'multistoreswitcher');
+        $this->l('store_name_23', 'multistoreswitcher');
+        $this->l('store_name_24', 'multistoreswitcher');
+        $this->l('store_name_25', 'multistoreswitcher');
+        $this->l('store_name_26', 'multistoreswitcher');
+        $this->l('store_name_27', 'multistoreswitcher');
+        $this->l('store_name_28', 'multistoreswitcher');
+        $this->l('store_name_29', 'multistoreswitcher');
+        $this->l('store_name_30', 'multistoreswitcher');
     }
 
     public function install()
@@ -35,11 +72,9 @@ class MultistoreSwitcher extends Module
 
         $hookNames = ['displayNav2', 'displayHeader'];
 
-        // Get all shop IDs
         $shopIds = Shop::getCompleteListOfShopsID();
 
         foreach ($shopIds as $shopId) {
-            // Switch context to each shop
             Shop::setContext(Shop::CONTEXT_SHOP, $shopId);
 
             foreach ($hookNames as $hookName) {
@@ -50,7 +85,6 @@ class MultistoreSwitcher extends Module
             }
         }
 
-        // Restore to all shops context
         Shop::setContext(Shop::CONTEXT_ALL);
 
         return true;
@@ -63,14 +97,15 @@ class MultistoreSwitcher extends Module
 
     public function render($responsive = false)
     {
-        // Safety checks
         if (!Shop::isFeatureActive() || !Validate::isLoadedObject($this->context->shop)) {
             return '';
         }
 
-        $shopIds = Shop::getCompleteListOfShopsID(); // Returns array of IDs
+        $shopIds = Shop::getCompleteListOfShopsID();
         $activeShops = [];
         $groupStatus = [];
+        $translator = $this->getTranslator();
+        $currentShopName = $this->context->shop->name;
 
         foreach ($shopIds as $idShop) {
             $shop = new Shop($idShop);
@@ -79,13 +114,13 @@ class MultistoreSwitcher extends Module
                 continue;
             }
 
-            $idShopGroup = (int)$shop->id_shop_group;
+            $idShopGroup = (int) $shop->id_shop_group;
 
             if (!isset($groupStatus[$idShopGroup])) {
                 $groupTable = _DB_PREFIX_ . 'shop_group';
                 $sql = "SELECT `active` FROM `{$groupTable}` WHERE `id_shop_group` = {$idShopGroup}";
                 $result = Db::getInstance()->getRow($sql);
-                $groupStatus[$idShopGroup] = (bool)($result['active'] ?? false);
+                $groupStatus[$idShopGroup] = (bool) ($result['active'] ?? false);
             }
 
             if (!$groupStatus[$idShopGroup]) {
@@ -95,21 +130,30 @@ class MultistoreSwitcher extends Module
             $useSsl = (bool) Configuration::get('PS_SSL_ENABLED');
             $domainUsed = $useSsl && !empty($shop->domain_ssl) ? $shop->domain_ssl : $shop->domain;
 
+            $translationKey = 'store_name_' . (int) $shop->id;
+            $translatedName = $translator->trans($translationKey, [], 'Modules.Multistoreswitcher.Shop');
+            $displayName = ($translatedName !== $translationKey) ? $translatedName : $shop->name;
+            $isCurrent = $shop->id === $this->context->shop->id;
+            if ($isCurrent) {
+                $currentShopName = $displayName;
+            }
+
             $activeShops[] = [
-                'id'         => (int) $shop->id,
-                'name'       => $shop->name,
-                'url'        => ($useSsl ? 'https://' : 'http://') . $domainUsed . $shop->getBaseURI(),
-                'is_current' => $shop->id === $this->context->shop->id,
+                'id'              => (int) $shop->id,
+                'name'            => $shop->name,
+                'name_to_display' => $displayName,
+                'url'             => ($useSsl ? 'https://' : 'http://') . $domainUsed . $shop->getBaseURI(),
+                'is_current'      => $isCurrent,
             ];
         }
 
         if (count($activeShops) <= 1) {
-            return ''; // Only show if more than one store
+            return '';
         }
 
         $currentShop = [
             'id'   => (int) $this->context->shop->id,
-            'name' => $this->context->shop->name,
+            'name' => $currentShopName,
         ];
 
         $this->context->smarty->assign([
@@ -124,7 +168,6 @@ class MultistoreSwitcher extends Module
 
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl');
     }
-
 
     public function hookDisplayHeader()
     {

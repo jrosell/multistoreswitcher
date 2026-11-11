@@ -17,7 +17,7 @@
         <li>
           <a class="dropdown-item {if $shop.is_current}active{/if}"
              href="{$shop.url|escape:'htmlall':'UTF-8'}">
-            {$shop.name|escape:'htmlall':'UTF-8'}
+            {$shop.name_to_display|escape:'htmlall':'UTF-8'}
             {if $shop.is_current} <span class="visually-hidden">({l s='Current' d='Modules.Multistoreswitcher.Shop'})</span>{/if}
           </a>
         </li>
@@ -28,7 +28,7 @@
               aria-label="{l s='Store' d='Modules.Multistoreswitcher.Shop'}">
         {foreach from=$shop_list item=shop}
           <option value="{$shop.url|escape:'htmlall':'UTF-8'}"{if $shop.is_current} selected="selected"{/if}>
-            {$shop.name|escape:'htmlall':'UTF-8'}
+            {$shop.name_to_display|escape:'htmlall':'UTF-8'}
           </option>
         {/foreach}
       </select>

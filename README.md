@@ -5,6 +5,7 @@ A simple, lightweight module that adds a store selector dropdown for PrestaShop 
 ## Features
 - Shows a dropdown of all active shops.
 - Switch between stores with one click.
+- Shop name translations.
 - No database changes.
 - Free and open source.
 
@@ -18,6 +19,7 @@ A simple, lightweight module that adds a store selector dropdown for PrestaShop 
 2. Go to Module Manager in your Back Office.
 3. Search for "Multistore Switcher" and install it.
 4. It will appear in the top navigation (via `displayNav2` hook). If you prefer, it can hooked to `displayFooter` too.
+5. If you need translatios, use `International > Translations > Modify translations`. Select `Installed modules translations` and `Multistore Switcher` and click `Modify` button.
 
 ## Compatibility
 - Works on PrestaShop 9.
