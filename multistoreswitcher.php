@@ -61,7 +61,7 @@ class MultistoreSwitcher extends Module
         return parent::uninstall();
     }
 
-    public function render()
+    public function render($responsive = false)
     {
         // Safety checks
         if (!Shop::isFeatureActive() || !Validate::isLoadedObject($this->context->shop)) {
@@ -115,6 +115,7 @@ class MultistoreSwitcher extends Module
         $this->context->smarty->assign([
             'shop_list'    => $activeShops,
             'current_shop' => $currentShop,
+            'multistoreswitcher_responsive' => $responsive,
         ]);
 
         if (!file_exists(_PS_MODULE_DIR_ . 'multistoreswitcher/views/templates/hook/multistoreswitcher.tpl')) {
@@ -127,13 +128,21 @@ class MultistoreSwitcher extends Module
 
     public function hookDisplayHeader()
     {
-        // Not done:
-        // $this->context->controller->addCSS($this->_path.'views/css/multistoreswitcher.css');
+        $this->context->controller->registerStylesheet(
+            'module-multistoreswitcher',
+            'modules/' . $this->name . '/views/css/multistoreswitcher.css',
+            ['media' => 'all', 'priority' => 200]
+        );
+        $this->context->controller->registerJavascript(
+            'module-multistoreswitcher',
+            'modules/' . $this->name . '/views/js/multistoreswitcher.js',
+            ['position' => 'bottom', 'priority' => 200]
+        );
     }
 
     public function hookDisplayNav2()
     {
-        return $this->render();
+        return $this->render(true);
     }
 
     public function hookDisplayTop()
